@@ -3,8 +3,8 @@
   "modid": "waypointtogethercontinued",
   "name": "WaypointTogetherContinued",
   "authors": [ "nulliel", "malin2223" ],
-  "version": "1.0.1",
+  "version": "1.0.0",
   "dependencies": {
-    "game": "1.20.0-rc.1"
+    "game": "1.19.8"
   }
 }
