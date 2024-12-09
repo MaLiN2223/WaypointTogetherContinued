@@ -1,6 +1,6 @@
 using Vintagestory.API.Server;
 
-namespace WaypointTogether;
+namespace WaypointTogetherContinued;
 
 public class Server {
     public readonly ServerNetwork network;

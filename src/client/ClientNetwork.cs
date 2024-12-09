@@ -1,6 +1,6 @@
 using Vintagestory.API.Client;
 
-namespace WaypointTogether;
+namespace WaypointTogetherContinued;
 
 public class ClientNetwork {
     private readonly ICoreClientAPI api;
@@ -11,7 +11,7 @@ public class ClientNetwork {
     public ClientNetwork(ICoreClientAPI api) {
         this.api = api;
 
-        channel = api.Network.RegisterChannel("nulliel.waypointtogether");
+        channel = api.Network.RegisterChannel("malin.waypointtogethercontinued");
         channel.RegisterMessageType<ShareWaypointPacket>();
         channel.SetMessageHandler<ShareWaypointPacket>(this.HandlePacket);
     }

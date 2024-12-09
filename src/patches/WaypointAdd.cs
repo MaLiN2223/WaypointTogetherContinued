@@ -54,7 +54,7 @@ static class WaypointAdd {
                 return;
             }
 
-            WaypointTogether.Core mod = capi.ModLoader.GetModSystem<WaypointTogether.Core>();
+            WaypointTogetherContinued.Core mod = capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
 
             mod.client.network.ShareWaypoint(message);
         }

@@ -1,12 +1,12 @@
 using Vintagestory.API.Server;
 
-namespace WaypointTogether;
+namespace WaypointTogetherContinued;
 
 public class ServerNetwork {
     private readonly IServerNetworkChannel channel;
 
     public ServerNetwork(ICoreServerAPI api) {
-        channel = api.Network.RegisterChannel("nulliel.waypointtogether");
+        channel = api.Network.RegisterChannel("malin.waypointtogethercontinued");
         channel.RegisterMessageType<ShareWaypointPacket>();
         channel.SetMessageHandler<ShareWaypointPacket>(this.HandlePacket);
     }
