@@ -1,15 +1,18 @@
 using ProtoBuf;
 
 [ProtoContract]
-class ShareWaypointPacket {
+class ShareWaypointPacket
+{
     [ProtoMember(1)]
     public string Message { get; set; }
 
-    public ShareWaypointPacket() {
+    public ShareWaypointPacket()
+    {
         Message = "";
     }
 
-    public ShareWaypointPacket(string message) {
+    public ShareWaypointPacket(string message)
+    {
         Message = message;
     }
 }

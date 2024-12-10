@@ -7,13 +7,17 @@ using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 using GuiComposerHelpers = Vintagestory.API.Client.GuiComposerHelpers;
 
-static class WaypointAdd {
+static class WaypointAdd
+{
     [HarmonyPatch(typeof(GuiDialogAddWayPoint), "ComposeDialog")]
-    static class AddWaypointPatch {
-        static void OnShareSwitch(bool on) {}
+    static class AddWaypointPatch
+    {
+        static void OnShareSwitch(bool on) { }
 
-        public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds) {
-            if (GuiComposerHelpers.GetSwitch(composer, "shouldShare") == null) {
+        public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
+        {
+            if (GuiComposerHelpers.GetSwitch(composer, "shouldShare") == null)
+            {
                 composer = composer.AddStaticText("Share", CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
 
                 return GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), "shouldShare");
@@ -22,11 +26,14 @@ static class WaypointAdd {
             return composer;
         }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
             var found = false;
 
-            foreach (var instruction in instructions) {
-                if (instruction.opcode == OpCodes.Ldstr && (string)instruction.operand == "waypoint-color") {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Ldstr && (string)instruction.operand == "waypoint-color")
+                {
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 1);
                     yield return new CodeInstruction(OpCodes.Call, typeof(AddWaypointPatch).GetMethod("AddShareComponent", BindingFlags.Static | BindingFlags.Public));
@@ -37,20 +44,24 @@ static class WaypointAdd {
                 yield return instruction;
             }
 
-            if (found is false) {
+            if (found is false)
+            {
                 throw new ArgumentException("Cannot find `waypoint-color` in GuiDialogAddWayPoint.ComposeDialog");
             }
         }
     }
 
     [HarmonyPatch(typeof(GuiDialogAddWayPoint), "onSave")]
-    static class SaveWaypointPatch {
+    static class SaveWaypointPatch
+    {
         public static void BroadcastWaypoint(
             string message,
             bool shouldShare,
             ICoreClientAPI capi
-        ) {
-            if (!shouldShare) {
+        )
+        {
+            if (!shouldShare)
+            {
                 return;
             }
 
@@ -59,11 +70,14 @@ static class WaypointAdd {
             mod.client.network.ShareWaypoint(message);
         }
 
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
             var found = false;
 
-            foreach (var instruction in instructions) {
-                if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == typeof(ICoreClientAPI).GetMethod("SendChatMessage", new Type[2]{ typeof(string), typeof(string) })) {
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == typeof(ICoreClientAPI).GetMethod("SendChatMessage", new Type[2] { typeof(string), typeof(string) }))
+                {
                     // Remove the ldnull call, add back at end
                     yield return new CodeInstruction(OpCodes.Pop, null);
                     // Duplicate message
@@ -86,7 +100,8 @@ static class WaypointAdd {
                 yield return instruction;
             }
 
-            if (found is false) {
+            if (found is false)
+            {
                 throw new ArgumentException("Cannot find `SendChatMessage` in OriginalType.OriginalMethod");
             }
         }
