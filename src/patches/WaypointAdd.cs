@@ -37,7 +37,7 @@ public static class ClientWaypointManager
             if (__instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
             {
                 string curName = __instance.SingleComposer.GetTextInput("nameInput").GetText();
-                ___capi.ShowChatMessage("Endpoint shared.");
+                ___capi.ShowChatMessage("Waypoint shared.");
                 WaypointTogetherContinued.Core mod = ___capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
                 mod.client.network.ShareWaypoint(curName);
             }
