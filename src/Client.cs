@@ -1,3 +1,4 @@
+using HarmonyLib;
 using Vintagestory.API.Client;
 
 namespace WaypointTogetherContinued;

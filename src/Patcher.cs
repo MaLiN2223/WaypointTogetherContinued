@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Vintagestory.API.Common;
 
 public class Patcher
 {
@@ -9,8 +10,9 @@ public class Patcher
         instance = new Harmony(id);
     }
 
-    public void PatchAll()
+    public void PatchAll(ICoreAPI api)
     {
+        ClientWaypointManager.PatchAll(instance, api);
         instance.PatchAll();
     }
 

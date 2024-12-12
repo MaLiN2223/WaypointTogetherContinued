@@ -34,13 +34,17 @@
   </ItemGroup>
 
 <ItemGroup>
-  <ProjectReference Include="..\CakeBuild\CakeBuild.csproj" />
+  <Content Include="assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </Content>
 </ItemGroup>
 
 <ItemGroup>
-  <None Update="resources\modinfo.json">
-    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-  </None>
+  <None Remove="assets\WaypointTogether.png" />
+</ItemGroup>
+
+<ItemGroup>
+  <ProjectReference Include="..\CakeBuild\CakeBuild.csproj" />
 </ItemGroup>
 
 </Project>

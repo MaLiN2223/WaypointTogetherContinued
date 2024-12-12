@@ -17,7 +17,7 @@ public class Core : ModSystem
         base.Start(api);
 
         patcher = new Patcher("WaypointTogetherContinued");
-        patcher.PatchAll();
+        patcher.PatchAll(api);
     }
 
     public override void StartClientSide(ICoreClientAPI api)

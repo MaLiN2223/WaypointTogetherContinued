@@ -4,28 +4,61 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 using GuiComposerHelpers = Vintagestory.API.Client.GuiComposerHelpers;
 
-static class WaypointAdd
+
+
+public static class ClientWaypointManager
 {
-    [HarmonyPatch(typeof(GuiDialogAddWayPoint), "ComposeDialog")]
-    static class AddWaypointPatch
+    static BindingFlags flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    private static string shouldShareSwitchName = "shouldShareButton";
+
+    public static void PatchAll(Harmony harmony, ICoreAPI api)
+    {
+        api.Logger.Notification("Applying Harmony patches...");
+        WaypointLogic.PatchHarmony(harmony);
+        api.Logger.Notification("Applying Harmony patches... OK");
+    }
+
+    public static class WaypointLogic
+    {
+        public static void PatchHarmony(Harmony harmony)
+        {
+            harmony.Patch(typeof(GuiDialogAddWayPoint).GetMethod("onSave", flags),
+                postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
+            harmony.Patch(typeof(GuiDialogEditWayPoint).GetMethod("onSave", flags),
+                postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
+        }
+
+        public static void PostOnAddSave(GuiDialogAddWayPoint __instance, ref ICoreClientAPI ___capi)
+        {
+            if (__instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
+            {
+                string curName = __instance.SingleComposer.GetTextInput("nameInput").GetText();
+                ___capi.ShowChatMessage("Endpoint shared.");
+                WaypointTogetherContinued.Core mod = ___capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
+                mod.client.network.ShareWaypoint(curName);
+            }
+        }
+    }
+
+
+    public static class WaypointShareSwitchPatch
     {
         static void OnShareSwitch(bool on) { }
-
         public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
         {
-            if (GuiComposerHelpers.GetSwitch(composer, "shouldShare") == null)
+            if (GuiComposerHelpers.GetSwitch(composer, shouldShareSwitchName) == null)
             {
                 composer = composer.AddStaticText("Share", CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
 
-                return GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), "shouldShare");
+                return GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), shouldShareSwitchName);
             }
 
             return composer;
         }
-
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             var found = false;
@@ -36,7 +69,7 @@ static class WaypointAdd
                 {
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 1);
-                    yield return new CodeInstruction(OpCodes.Call, typeof(AddWaypointPatch).GetMethod("AddShareComponent", BindingFlags.Static | BindingFlags.Public));
+                    yield return new CodeInstruction(OpCodes.Call, typeof(AddWaypointShareSwitchPatch).GetMethod("AddShareComponent", BindingFlags.Static | BindingFlags.Public));
 
                     found = true;
                 }
@@ -51,59 +84,31 @@ static class WaypointAdd
         }
     }
 
-    [HarmonyPatch(typeof(GuiDialogAddWayPoint), "onSave")]
-    static class SaveWaypointPatch
+    [HarmonyPatch(typeof(GuiDialogAddWayPoint), "ComposeDialog")]
+    public static class AddWaypointShareSwitchPatch
     {
-        public static void BroadcastWaypoint(
-            string message,
-            bool shouldShare,
-            ICoreClientAPI capi
-        )
+        public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
         {
-            if (!shouldShare)
-            {
-                return;
-            }
-
-            WaypointTogetherContinued.Core mod = capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
-
-            mod.client.network.ShareWaypoint(message);
+            return WaypointShareSwitchPatch.AddShareComponent(composer, ref textBounds, ref toggleBounds);
         }
 
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            var found = false;
+            return WaypointShareSwitchPatch.Transpiler(instructions);
+        }
+    }
 
-            foreach (var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == typeof(ICoreClientAPI).GetMethod("SendChatMessage", new Type[2] { typeof(string), typeof(string) }))
-                {
-                    // Remove the ldnull call, add back at end
-                    yield return new CodeInstruction(OpCodes.Pop, null);
-                    // Duplicate message
-                    yield return new CodeInstruction(OpCodes.Dup, null);
-                    // Get "shouldShare" switch value from patched ComposeDialog
-                    yield return new CodeInstruction(OpCodes.Ldarg_0, null);
-                    yield return new CodeInstruction(OpCodes.Call, typeof(GuiDialog).GetMethod("get_SingleComposer", BindingFlags.Instance | BindingFlags.Public));
-                    yield return new CodeInstruction(OpCodes.Ldstr, "shouldShare");
-                    yield return new CodeInstruction(OpCodes.Call, typeof(GuiComposerHelpers).GetMethod("GetSwitch", BindingFlags.Static | BindingFlags.Public));
-                    yield return new CodeInstruction(OpCodes.Ldfld, typeof(GuiElementSwitch).GetField("On", BindingFlags.Instance | BindingFlags.Public));
-                    // Load capi
-                    yield return new CodeInstruction(OpCodes.Ldarg_0, null);
-                    yield return new CodeInstruction(OpCodes.Ldfld, typeof(GuiDialogAddWayPoint).GetField("capi", BindingFlags.Instance | BindingFlags.NonPublic));
-                    yield return new CodeInstruction(OpCodes.Call, typeof(SaveWaypointPatch).GetMethod("BroadcastWaypoint", BindingFlags.Static | BindingFlags.Public));
-                    yield return new CodeInstruction(OpCodes.Ldnull, null);
+    [HarmonyPatch(typeof(GuiDialogEditWayPoint), "ComposeDialog")]
+    public static class EditWaypointShareSwitchPatch
+    {
+        public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
+        {
+            return WaypointShareSwitchPatch.AddShareComponent(composer, ref textBounds, ref toggleBounds);
+        }
 
-                    found = true;
-                }
-
-                yield return instruction;
-            }
-
-            if (found is false)
-            {
-                throw new ArgumentException("Cannot find `SendChatMessage` in OriginalType.OriginalMethod");
-            }
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return WaypointShareSwitchPatch.Transpiler(instructions);
         }
     }
 }
