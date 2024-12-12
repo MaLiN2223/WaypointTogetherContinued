@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 using GuiComposerHelpers = Vintagestory.API.Client.GuiComposerHelpers;
 
@@ -37,7 +38,8 @@ public static class ClientWaypointManager
             if (__instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
             {
                 string curName = __instance.SingleComposer.GetTextInput("nameInput").GetText();
-                ___capi.ShowChatMessage("Waypoint shared.");
+                string message = Lang.Get("waypointtogethercontinued:waypoint-shared");
+                ___capi.ShowChatMessage(message);
                 WaypointTogetherContinued.Core mod = ___capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
                 mod.client.network.ShareWaypoint(curName);
             }
@@ -52,7 +54,8 @@ public static class ClientWaypointManager
         {
             if (GuiComposerHelpers.GetSwitch(composer, shouldShareSwitchName) == null)
             {
-                composer = composer.AddStaticText("Share", CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
+                string shareString = Lang.Get("waypointtogethercontinued:share");
+                composer = composer.AddStaticText(shareString, CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
 
                 return GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), shouldShareSwitchName);
             }

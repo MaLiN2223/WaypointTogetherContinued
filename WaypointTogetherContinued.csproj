@@ -34,10 +34,9 @@
   </ItemGroup>
 
 <ItemGroup>
-  <ProjectReference Include="..\CakeBuild\CakeBuild.csproj" />
-</ItemGroup>
-
-<ItemGroup>
+  <None Update="assets\waypointtogethercontiued\lang\en.json">
+    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+  </None>
   <None Update="resources\modinfo.json">
     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
   </None>
