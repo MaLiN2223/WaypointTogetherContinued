@@ -1,10 +1,10 @@
 {
 	"type": "code",
-	"modid": "waypointtogether",
-	"name": "WaypointTogether",
-	"authors": ["nulliel"],
-	"version": "1.0.0",
+	"modid": "waypointtogethercontiued",
+	"name": "WaypointTogetherContinued",
+	"authors": ["MaLiN2223"],
+	"version": "2.0.0",
 	"dependencies": {
-		"game": "1.18.5"
+		"game": "1.20.0-rc.1"
 	}
 }

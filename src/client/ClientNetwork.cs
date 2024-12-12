@@ -2,13 +2,15 @@ using Vintagestory.API.Client;
 
 namespace WaypointTogetherContinued;
 
-public class ClientNetwork {
+public class ClientNetwork
+{
     private readonly ICoreClientAPI api;
     private readonly IClientNetworkChannel channel;
 
     string lastMessage = "";
 
-    public ClientNetwork(ICoreClientAPI api) {
+    public ClientNetwork(ICoreClientAPI api)
+    {
         this.api = api;
 
         channel = api.Network.RegisterChannel("malin.waypointtogethercontinued");
@@ -16,14 +18,18 @@ public class ClientNetwork {
         channel.SetMessageHandler<ShareWaypointPacket>(this.HandlePacket);
     }
 
-    public void ShareWaypoint(string message) {
-        if (message != null && message != "") {
+    public void ShareWaypoint(string message)
+    {
+        if (message != null && message != "")
+        {
             channel.SendPacket(new ShareWaypointPacket(message));
         }
     }
 
-    private void HandlePacket(ShareWaypointPacket packet) {
-        if (lastMessage == packet.Message) {
+    private void HandlePacket(ShareWaypointPacket packet)
+    {
+        if (lastMessage == packet.Message)
+        {
             return;
         }
 
