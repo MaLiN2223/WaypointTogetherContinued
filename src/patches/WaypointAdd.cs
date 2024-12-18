@@ -9,8 +9,6 @@ using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 using GuiComposerHelpers = Vintagestory.API.Client.GuiComposerHelpers;
 
-
-
 public static class ClientWaypointManager
 {
     static BindingFlags flags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
@@ -27,22 +25,99 @@ public static class ClientWaypointManager
     {
         public static void PatchHarmony(Harmony harmony)
         {
-            harmony.Patch(typeof(GuiDialogAddWayPoint).GetMethod("onSave", flags),
-                postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
-            harmony.Patch(typeof(GuiDialogEditWayPoint).GetMethod("onSave", flags),
-                postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
+            //harmony.Patch(typeof(GuiDialogAddWayPoint).GetMethod("onSave", flags),
+            //    postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
+            //harmony.Patch(typeof(GuiDialogEditWayPoint).GetMethod("onSave", flags),
+            //    postfix: typeof(WaypointLogic).GetMethod(nameof(PostOnAddSave)));
         }
+    }
 
-        public static void PostOnAddSave(GuiDialogAddWayPoint __instance, ref ICoreClientAPI ___capi)
+    static class BroadcastWaypointPatcher
+    {
+        public static readonly MethodInfo sendChatMessageMethod = AccessTools.Method(typeof(ICoreClientAPI), nameof(ICoreClientAPI.SendChatMessage), new Type[2] { typeof(string), typeof(string) });
+        public static readonly MethodInfo toReplaceWith = AccessTools.Method(typeof(BroadcastWaypointPatcher), nameof(BroadcastWaypoint));
+        public static void BroadcastWaypoint(ICoreClientAPI capi, string message, GuiDialogEditWayPoint instance)
         {
-            if (__instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
+            if (capi != null)
             {
-                string curName = __instance.SingleComposer.GetTextInput("nameInput").GetText();
-                string message = Lang.Get("waypointtogethercontinued:waypoint-shared");
-                ___capi.ShowChatMessage(message);
-                WaypointTogetherContinued.Core mod = ___capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
-                mod.client.network.ShareWaypoint(curName);
+                if (instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
+                {
+                    WaypointTogetherContinued.Core mod = capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
+                    mod.client.network.ShareWaypoint(message, capi.World.Player.PlayerUID);
+                    capi.SendChatMessage(message);
+                    string messageToTheUser = Lang.Get("waypointtogethercontinued:waypoint-shared");
+                    capi.ShowChatMessage(messageToTheUser);
+                }
             }
+        }
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            List<CodeInstruction> list = new();
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == sendChatMessageMethod)
+                {
+                    list.RemoveAt(list.Count - 1); // remove 'ldnull'
+                    list.Add(new CodeInstruction(OpCodes.Ldarg_0)); // load 'this'
+                    list.Add(new CodeInstruction(OpCodes.Call, toReplaceWith));
+                }
+                else
+                {
+                    list.Add(instruction);
+                }
+            }
+            return list;
+        }
+    }
+
+    [HarmonyPatch(typeof(GuiDialogEditWayPoint), "onSave")]
+    class Patch_GuiDialogEditWayPoint_onSave
+    {
+        public static readonly MethodInfo sendChatMessageMethod = AccessTools.Method(typeof(ICoreClientAPI), nameof(ICoreClientAPI.SendChatMessage), new Type[2] { typeof(string), typeof(string) });
+        public static readonly MethodInfo toReplaceWith = AccessTools.Method(typeof(Patch_GuiDialogEditWayPoint_onSave), nameof(BroadcastWaypoint));
+        public static void BroadcastWaypoint(ICoreClientAPI capi, string message, GuiDialogEditWayPoint instance)
+        {
+            if (capi != null)
+            {
+                if (instance.SingleComposer.GetSwitch(shouldShareSwitchName).Enabled)
+                {
+                    WaypointTogetherContinued.Core mod = capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
+
+                    var maplayers = capi.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
+                    var mapLayer = (maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer);
+                    var waypoint = Traverse.Create(instance).Field("waypoint").GetValue<Waypoint>();
+                    mod.client.network.ShareWaypoint(message, waypoint.Guid);
+                    capi.SendChatMessage(message);
+                    string messageToTheUser = Lang.Get("waypointtogethercontinued:waypoint-shared");
+                    capi.ShowChatMessage(messageToTheUser);
+                }
+            }
+        }
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            List<CodeInstruction> list = new();
+            foreach (var instruction in instructions)
+            {
+                if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == sendChatMessageMethod)
+                {
+                    list.RemoveAt(list.Count - 1); // remove 'ldnull'
+                    list.Add(new CodeInstruction(OpCodes.Ldarg_0)); // load 'this'
+                    list.Add(new CodeInstruction(OpCodes.Call, toReplaceWith));
+                }
+                else
+                {
+                    list.Add(instruction);
+                }
+            }
+            return list;
+        }
+    }
+    [HarmonyPatch(typeof(GuiDialogAddWayPoint), "onSave")]
+    class Patch_GuiDialogAddWayPoint_onSave
+    {
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return BroadcastWaypointPatcher.Transpiler(instructions);
         }
     }
 

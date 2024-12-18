@@ -1,4 +1,5 @@
 using HarmonyLib;
+using System;
 using Vintagestory.API.Common;
 
 public class Patcher
@@ -12,8 +13,17 @@ public class Patcher
 
     public void PatchAll(ICoreAPI api)
     {
-        ClientWaypointManager.PatchAll(instance, api);
-        instance.PatchAll();
+        try
+        {
+            ClientWaypointManager.PatchAll(instance, api);
+            instance.PatchAll();
+        }
+        catch (Exception e)
+        {
+            api.Logger.Error(e.ToString());
+            api.Logger.Error(e.InnerException.ToString());
+            throw;
+        }
     }
 
     public void Dispose()
