@@ -15,7 +15,6 @@ public class Patcher
     {
         try
         {
-            ClientWaypointManager.PatchAll(instance, api);
             instance.PatchAll();
         }
         catch (Exception e)

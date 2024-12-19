@@ -58,7 +58,7 @@ public class ShareWaypointPacketFromServer
     public ShareWaypointPacketFromServer(string message, Waypoint existingWaypoint)
     {
         Message = message;
-            ExistingWaypoint = existingWaypoint;
+        ExistingWaypoint = existingWaypoint;
     }
 }
 

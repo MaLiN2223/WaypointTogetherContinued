@@ -38,7 +38,6 @@ public class ClientNetwork
         }
 
         var currentPlayer = api.World.Player;
-
         if (packet.Message.StartsWith("/waypoint modify"))
         {
             // Modify currently is in format of /waypoint modify <id> <color> <icon> <pinned> <name>
@@ -61,9 +60,13 @@ public class ClientNetwork
             }
             else
             {
+                int worldLen = api.World.Config.GetAsInt("worldLength") / 2;
+                double x = existing.Position.X - worldLen;
+                double y = existing.Position.Y - worldLen;
+                double z = existing.Position.Z - worldLen;
                 // we want /waypoint addati [icon] [x] [y] [z] [pinned] [color] [title]
-                string message = "/waypoint addti " + icon + " " + existing.Position.X + " " + existing.Position.Y + " " + existing.Position.Z + " " + pinned + " " + color + " " + name;
-                api.SendChatMessage(packet.Message);
+                string message = $"/waypoint addati {icon} {x} {y} {z} {pinned} {color} {name}";
+                api.SendChatMessage(message);
             }
         }
         else
