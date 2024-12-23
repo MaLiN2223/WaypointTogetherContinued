@@ -51,7 +51,7 @@ public class ClientNetwork
             var maplayers = api.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
             var waypointLayer = (maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer);
             Waypoint existing = packet.ExistingWaypoint;
-            int myExistingId = 1;
+            int myExistingId = -1;
             if (waypointLayer != null && waypointLayer.ownWaypoints != null)
             {
                 myExistingId = waypointLayer.ownWaypoints.FindIndex(x => x.Position.X == existing.Position.X && x.Position.Y == existing.Position.Y && x.Position.Z == existing.Position.Z);
