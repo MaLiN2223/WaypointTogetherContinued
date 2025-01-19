@@ -1,6 +1,7 @@
 ﻿using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Server;
+using WaypointTogetherContinued.src;
 
 [assembly: ModInfo("WaypointTogetherContinued", Authors = new[] { "nulliel", "malin2223" })]
 namespace WaypointTogetherContinued;
@@ -15,6 +16,7 @@ public class Core : ModSystem
     public override void Start(ICoreAPI api)
     {
         base.Start(api);
+        ModConfig.ReadConfig(api);
 
         patcher = new Patcher("WaypointTogetherContinued");
         patcher.PatchAll(api);

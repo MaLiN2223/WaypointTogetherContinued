@@ -13,6 +13,7 @@
     public static class WaypointShareSwitchPatch
     {
         static void OnShareSwitch(bool on) { }
+
         public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
         {
             if (GuiComposerHelpers.GetSwitch(composer, Settings.ShouldShareSwitchName) == null)
@@ -20,7 +21,10 @@
                 string shareString = Lang.Get("waypointtogethercontinued:share");
                 composer = composer.AddStaticText(shareString, CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
 
-                return GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), Settings.ShouldShareSwitchName);
+                GuiComposer c = GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), Settings.ShouldShareSwitchName);
+                var sw = GuiComposerHelpers.GetSwitch(composer, Settings.ShouldShareSwitchName);
+                sw.On = ModConfig.ClientConfig.DeafultSharing;
+                return c;
             }
 
             return composer;
