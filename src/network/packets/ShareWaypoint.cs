@@ -1,4 +1,5 @@
 using ProtoBuf;
+using Vintagestory.GameContent;
 
 [ProtoContract]
 class ShareWaypointPacket
@@ -7,17 +8,17 @@ class ShareWaypointPacket
     public string Message { get; set; }
 
     [ProtoMember(2)]
-    public string WaypointGuid { get; set; }
+    public Waypoint Waypoint { get; set; }
 
     public ShareWaypointPacket()
     {
         Message = "";
-        WaypointGuid = "";
+        Waypoint = null;
     }
 
-    public ShareWaypointPacket(string message, string waypointGuid)
+    public ShareWaypointPacket(string message, Waypoint waypointGuid)
     {
         Message = message;
-        WaypointGuid = waypointGuid;
+        Waypoint = waypointGuid;
     }
 }

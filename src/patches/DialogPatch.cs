@@ -8,22 +8,21 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Config;
     using Vintagestory.GameContent;
-    using GuiComposerHelpers = Vintagestory.API.Client.GuiComposerHelpers;
 
     public static class WaypointShareSwitchPatch
     {
-        static void OnShareSwitch(bool on) { }
+        public static readonly MethodInfo AddShareComponentMethod = AccessTools.Method(typeof(WaypointShareSwitchPatch), nameof(AddShareComponent));
 
         public static GuiComposer AddShareComponent(GuiComposer composer, ref ElementBounds textBounds, ref ElementBounds toggleBounds)
         {
-            if (GuiComposerHelpers.GetSwitch(composer, Settings.ShouldShareSwitchName) == null)
+            if (composer.GetSwitch(Settings.ShouldShareSwitchName) == null)
             {
                 string shareString = Lang.Get("waypointtogethercontinued:share");
                 composer = composer.AddStaticText(shareString, CairoFont.WhiteSmallText(), textBounds = textBounds.BelowCopy(0, 9, 0, 0));
 
-                GuiComposer c = GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), Settings.ShouldShareSwitchName);
-                var sw = GuiComposerHelpers.GetSwitch(composer, Settings.ShouldShareSwitchName);
-                sw.On = ModConfig.ClientConfig.DeafultSharing;
+                GuiComposer c = composer.AddSwitch((bool _) => { }, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), Settings.ShouldShareSwitchName);
+                var sw = composer.GetSwitch(Settings.ShouldShareSwitchName);
+                sw.On = ModConfig.ClientConfig?.DeafultSharing ?? false;
                 return c;
             }
 
@@ -39,7 +38,7 @@
                 {
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 1);
-                    yield return new CodeInstruction(OpCodes.Call, typeof(AddWaypointShareSwitchPatch).GetMethod("AddShareComponent", BindingFlags.Static | BindingFlags.Public));
+                    yield return new CodeInstruction(OpCodes.Call, AddShareComponentMethod);
 
                     found = true;
                 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -18,7 +19,8 @@ class Patch_GuiDialogAddWayPoint_onSave
             if (instance.SingleComposer.GetSwitch(Settings.ShouldShareSwitchName).On)
             {
                 WaypointTogetherContinued.Core mod = capi.ModLoader.GetModSystem<WaypointTogetherContinued.Core>();
-                mod.client.network.ShareWaypoint(message, capi.World.Player.PlayerUID);
+                var waypoint = Traverse.Create(instance).Field("waypoint").GetValue<Waypoint>();
+                mod.client?.network.ShareWaypoint(message, waypoint);
                 string messageToTheUser = Lang.Get("waypointtogethercontinued:waypoint-shared");
                 capi.ShowChatMessage(messageToTheUser);
             }
@@ -27,20 +29,35 @@ class Patch_GuiDialogAddWayPoint_onSave
     }
     public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        List<CodeInstruction> list = new();
-        foreach (var instruction in instructions)
+        var cloned = instructions.ToList();
+        var found = 0;
+        for (int i = 0; i < cloned.Count; i++)
         {
-            if (instruction.opcode == OpCodes.Callvirt && (MethodInfo)instruction.operand == Settings.SendChatMessageMethod)
+            var instruction = cloned[i];
+            CodeInstruction nextInstruction = null;
+            if (i < cloned.Count - 1) {
+                nextInstruction = cloned[i + 1];
+            }
+            if (found == 0 && instruction.opcode == OpCodes.Ldnull && nextInstruction?.opcode == OpCodes.Callvirt && nextInstruction.operand is MethodInfo method && method == Settings.SendChatMessageMethod)
             {
-                list.RemoveAt(list.Count - 1); // remove 'ldnull'
-                list.Add(new CodeInstruction(OpCodes.Ldarg_0)); // load 'this'
-                list.Add(new CodeInstruction(OpCodes.Call, toReplaceWith));
+                found = 1;
+            }
+            else if (found == 1)
+            {
+                // ORIGINAL: list.RemoveAt(list.Count - 1); // remove 'ldnull'
+                yield return new CodeInstruction(OpCodes.Ldarg_0); // load 'this'
+                yield return new CodeInstruction(OpCodes.Call, toReplaceWith);
+                found = 2;
             }
             else
             {
-                list.Add(instruction);
+                yield return instruction;
             }
         }
-        return list;
+
+        if (found != 2)
+        {
+            throw new ArgumentException("Cannot find `ldnull` before `callvirt` in GuiDialogAddWayPoint.onSave");
+        }
     }
 }

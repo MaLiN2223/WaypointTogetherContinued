@@ -1,5 +1,6 @@
 using HarmonyLib;
 using System;
+using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 
@@ -18,19 +19,18 @@ public class ClientNetwork
 
         channel = api.Network.RegisterChannel("malin.waypointtogethercontinued");
         channel.RegisterMessageType<ShareWaypointPacket>();
-        channel.RegisterMessageType<ShareWaypointPacketFromServer>();
-        channel.SetMessageHandler<ShareWaypointPacketFromServer>(this.HandlePacket);
+        channel.SetMessageHandler<ShareWaypointPacket>(this.HandlePacket);
     }
 
-    public void ShareWaypoint(string message, string byUser)
+    public void ShareWaypoint(string message, Waypoint wayPoint)
     {
-        if (message != null && message != "")
+        if (!string.IsNullOrEmpty(message))
         {
-            channel.SendPacket(new ShareWaypointPacket(message, byUser));
+            channel.SendPacket(new ShareWaypointPacket(message, wayPoint));
         }
     }
 
-    private void HandlePacket(ShareWaypointPacketFromServer packet)
+    private void HandlePacket(ShareWaypointPacket packet)
     {
         if (lastMessage == packet.Message)
         {
@@ -46,11 +46,11 @@ public class ClientNetwork
             string color = split[3];
             string icon = split[4];
             string pinned = split[5];
-            string name = split[6];
+            string name = string.Join(' ', split.Skip(6));
 
             var maplayers = api.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
             var waypointLayer = (maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer);
-            Waypoint existing = packet.ExistingWaypoint;
+            Waypoint existing = packet.Waypoint;
             int myExistingId = -1;
             if (waypointLayer != null && waypointLayer.ownWaypoints != null)
             {
@@ -64,10 +64,9 @@ public class ClientNetwork
             }
             else
             {
-                int worldLen = api.World.Config.GetAsInt("worldLength") / 2;
-                double x = existing.Position.X - worldLen;
-                double y = existing.Position.Y - worldLen;
-                double z = existing.Position.Z - worldLen;
+                double x = existing.Position.X - (api.World.BlockAccessor.MapSizeX / 2);
+                double y = existing.Position.Y - api.World.MapSizeY;
+                double z = existing.Position.Z - (api.World.BlockAccessor.MapSizeZ / 2);
                 // we want /waypoint addati [icon] [x] [y] [z] [pinned] [color] [title]
                 string message = $"/waypoint addati {icon} {x} {y} {z} {pinned} {color} {name}";
                 api.SendChatMessage(message);
