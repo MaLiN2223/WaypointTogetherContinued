@@ -4,6 +4,8 @@
     <TargetFramework>net7.0</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath>bin\$(Configuration)\Mods\mod</OutputPath>
+    <Nullable>enable</Nullable>
+    <RootNamespace>WaypointTogetherContinued</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -37,13 +39,13 @@
     </Reference>
   </ItemGroup>
 
-<ItemGroup>
-  <None Update="assets\waypointtogethercontiued\lang\en.json">
-    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-  </None>
-  <None Update="resources\modinfo.json">
-    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-  </None>
-</ItemGroup>
+  <ItemGroup>
+    <None Update="assets\waypointtogethercontiued\lang\en.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="resources\modinfo.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
