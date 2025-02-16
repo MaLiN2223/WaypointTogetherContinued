@@ -11,7 +11,7 @@
         }
         public Config(Config previousConfig)
         {
-            DeafultSharing = previousConfig.DeafultSharing;
+            DeafultSharing = previousConfig?.DeafultSharing ?? false;
         }
     }
 
