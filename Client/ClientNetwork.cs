@@ -1,9 +1,5 @@
-using System.Net.Sockets;
-using System.Text;
-
+using System.Linq;
 using Vintagestory.API.Client;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 using WaypointTogetherContinued.Network.Packets;
 namespace WaypointTogetherContinued.Client;
@@ -26,7 +22,7 @@ public class ClientNetwork
     /// Stores an instance of the last message that was received by the server.
     /// </summary>
     private string lastMessage = "";
-  
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ClientNetwork" /> class.
     /// </summary>
@@ -73,29 +69,32 @@ public class ClientNetwork
             string color = split[3];
             string icon = split[4];
             string pinned = split[5];
-            string name = split[6];
+            string name = string.Join(' ', split.Skip(6));
 
             var maplayers = this.API.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
             var waypointLayer = maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer;
-            Waypoint? existing = packet.WayPoint;
-            if (existing is not null) {
+            Waypoint? packetWayPoint = packet.WayPoint;
+            if (packetWayPoint is not null) {
                 int myExistingId = -1;
                 if (waypointLayer?.ownWaypoints is not null)
                 {
-                    myExistingId = waypointLayer.ownWaypoints.FindIndex(x => x.Position.X == existing?.Position.X && x.Position.Y == existing.Position.Y && x.Position.Z == existing.Position.Z);
+                    myExistingId = waypointLayer.ownWaypoints.FindIndex((Waypoint existingWayPoint) => 
+                      existingWayPoint.Position.X == packetWayPoint?.Position.X
+                      && existingWayPoint.Position.Y == packetWayPoint.Position.Y
+                      && existingWayPoint.Position.Z == packetWayPoint.Position.Z
+                    );
                 }
                 if (myExistingId != -1)
                 {
-                    // send modify, just replace id
-                    string message = "/waypoint modify " + myExistingId + " " + existing.Color + " " + icon + " " + pinned + " " + name;
-                    this.API.SendChatMessage(message);
+                    // Send modify, just replace id
+                    this.API.SendChatMessage($"/waypoint modify {myExistingId} {color} {icon} {pinned} {name}");
                 }
                 else
                 {
-                    double x = existing.Position.X - (this.API.World.BlockAccessor.MapSizeX / 2);
-                    double y = existing.Position.Y - this.API.World.MapSizeY;
-                    double z = existing.Position.Z - (this.API.World.BlockAccessor.MapSizeZ / 2);
-                    // we want /waypoint addati [icon] [x] [y] [z] [pinned] [color] [title]
+                    double x = packetWayPoint.Position.X - (this.API.World.BlockAccessor.MapSizeX / 2);
+                    double y = packetWayPoint.Position.Y - this.API.World.MapSizeY;
+                    double z = packetWayPoint.Position.Z - (this.API.World.BlockAccessor.MapSizeZ / 2);
+                    // We want /waypoint addati [icon] [existingWayPoint] [y] [z] [pinned] [color] [name]
                     string message = $"/waypoint addati {icon} {x} {y} {z} {pinned} {color} {name}";
                     this.API.SendChatMessage(message);
                 }
