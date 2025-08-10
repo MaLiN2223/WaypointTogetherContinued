@@ -17,7 +17,7 @@
 
     static class ModConfig
     {
-        public static Config ClientConfig { get; private set; }
+        public static Config ClientConfig { get; private set; } = new Config();
 
         private const string ClientConfigFile = "WaypointTogetherContinued.json";
 
@@ -49,7 +49,7 @@
 
         private static void GenerateClientConfig(ICoreAPI api)
         {
-            api.StoreModConfig(new Config(), ClientConfigFile);
+            api.StoreModConfig(ClientConfig, ClientConfigFile);
         }
 
         private static Config LoadClientConfig(ICoreAPI api)

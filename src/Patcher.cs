@@ -20,7 +20,8 @@ public class Patcher
         catch (Exception e)
         {
             api.Logger.Error(e.ToString());
-            api.Logger.Error(e.InnerException.ToString());
+            if (e.InnerException is not null)
+                api.Logger.Error(e.InnerException.ToString());
             throw;
         }
     }
