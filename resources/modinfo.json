@@ -2,8 +2,8 @@
   "type": "code",
   "modid": "waypointtogethercontiued",
   "name": "WaypointTogetherContinued",
-  "authors": [ "MaLiN2223" ],
-  "version": "2.2.0",
+  "authors": [ "MaLiN2223", "iturtleman" ],
+  "version": "2.3.0",
   "dependencies": {
     "game": "1.20.0"
   }
