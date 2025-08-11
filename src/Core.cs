@@ -8,10 +8,10 @@ namespace WaypointTogetherContinued;
 
 public class Core : ModSystem
 {
-    public Client client;
-    public Server server;
+    public required Client client;
+    public required Server server;
 
-    public Patcher patcher;
+    public required Patcher patcher;
 
     public override void Start(ICoreAPI api)
     {

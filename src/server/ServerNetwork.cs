@@ -34,10 +34,20 @@ public class ServerNetwork
     private void HandlePacket(IServerPlayer player, ShareWaypointPacket packet)
     {
         var maplayers = api.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
-        var waypointLayer = (maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer);
-        Waypoint existing = waypointLayer.Waypoints.Find(x => x.Guid == packet.WaypointGuid);
-        var newPacket = new ShareWaypointPacketFromServer(packet.Message, existing);
-        channel.BroadcastPacket(newPacket, player);
+        var waypointLayer = maplayers.Find(x => x is WaypointMapLayer);
+        if (waypointLayer is WaypointMapLayer wml)
+        {
+            var existing = wml.Waypoints.Find(x => x.Guid == packet.WaypointGuid);
+            if (existing is not null)
+            {
+                var newPacket = new ShareWaypointPacketFromServer
+                {
+                    Message = packet.Message,
+                    ExistingWaypoint = existing,
+                };
+                channel.BroadcastPacket(newPacket, player);
+            }
+        }
     }
 }
 
@@ -45,20 +55,9 @@ public class ServerNetwork
 public class ShareWaypointPacketFromServer
 {
     [ProtoMember(1)]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 
     [ProtoMember(2)]
-    public Waypoint ExistingWaypoint { get; set; }
-
-    public ShareWaypointPacketFromServer()
-    {
-        Message = "";
-    }
-
-    public ShareWaypointPacketFromServer(string message, Waypoint existingWaypoint)
-    {
-        Message = message;
-        ExistingWaypoint = existingWaypoint;
-    }
+    public required Waypoint ExistingWaypoint { get; set; }
 }
 
