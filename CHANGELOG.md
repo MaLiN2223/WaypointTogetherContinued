@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.1](https://github.com/MaLiN2223/WaypointTogetherContinued/compare/v1.1.0...v1.1.1) (2022-08-10)
+* Fix null issues
+
 ## [1.1.0](https://github.com/MaLiN2223/WaypointTogetherContinued/compare/v1.0.5...v1.1.0) (2024-12-12)
 
 
