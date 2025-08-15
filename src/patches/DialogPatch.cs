@@ -23,6 +23,11 @@
 
                 GuiComposer c = GuiComposerHelpers.AddSwitch(composer, OnShareSwitch, toggleBounds = toggleBounds.BelowCopy(0, 5, 0, 0).WithFixedWidth(200), Settings.ShouldShareSwitchName);
                 var sw = GuiComposerHelpers.GetSwitch(composer, Settings.ShouldShareSwitchName);
+                if (ModConfig.ClientConfig == null)
+                {
+                    sw.On = false;
+                    return c;
+                }
                 sw.On = ModConfig.ClientConfig.DeafultSharing;
                 return c;
             }
