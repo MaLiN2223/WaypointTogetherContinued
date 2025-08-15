@@ -3,7 +3,7 @@
   "modid": "waypointtogethercontiued",
   "name": "WaypointTogetherContinued",
   "authors": [ "MaLiN2223", "iturtleman" ],
-  "version": "2.4.1",
+  "version": "2.5.2",
   "dependencies": {
     "game": "1.20.12"
   }

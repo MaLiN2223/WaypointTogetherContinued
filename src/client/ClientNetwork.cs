@@ -1,5 +1,6 @@
 using HarmonyLib;
 using System;
+using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
 
@@ -46,7 +47,7 @@ public class ClientNetwork
             string color = split[3];
             string icon = split[4];
             string pinned = split[5];
-            string name = split[6];
+            string name = string.Join(' ', split.Skip(5));
 
             var maplayers = api.ModLoader.GetModSystem<WorldMapManager>().MapLayers;
             var waypointLayer = (maplayers.Find(x => x is WaypointMapLayer) as WaypointMapLayer);
