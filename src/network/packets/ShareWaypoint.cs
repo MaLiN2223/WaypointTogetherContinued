@@ -1,23 +1,24 @@
 using ProtoBuf;
+using Vintagestory.GameContent;
+
+
+public enum CommandType
+{
+    Add = 1,
+    Remove = 2,
+    Modify = 3
+}
 
 [ProtoContract]
-class ShareWaypointPacket
+public class UserToServerShareWaypointMessage
 {
     [ProtoMember(1)]
-    public string Message { get; set; }
+    public required Waypoint Waypoint { get; set; }
+}
 
-    [ProtoMember(2)]
-    public string WaypointGuid { get; set; }
-
-    public ShareWaypointPacket()
-    {
-        Message = "";
-        WaypointGuid = "";
-    }
-
-    public ShareWaypointPacket(string message, string waypointGuid)
-    {
-        Message = message;
-        WaypointGuid = waypointGuid;
-    }
+[ProtoContract]
+public class ServerToUserShareWaypointMessage
+{
+    [ProtoMember(1)]
+    public required Waypoint Waypoint { get; set; }
 }
